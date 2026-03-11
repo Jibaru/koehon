@@ -2,17 +2,18 @@
 
 # Stage 1: Install dependencies
 FROM node:20.18.3-alpine3.21 AS deps
-RUN corepack enable && corepack prepare pnpm@latest --activate
 # Install security updates
 RUN apk upgrade --no-cache
+# Install pnpm using corepack with specific version
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --frozen-lockfile
 
 # Stage 2: Build the application
 FROM node:20.18.3-alpine3.21 AS builder
-RUN corepack enable && corepack prepare pnpm@latest --activate
 RUN apk upgrade --no-cache
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 WORKDIR /app
 
 # Accept build arguments for NEXT_PUBLIC_ environment variables
