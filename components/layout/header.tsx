@@ -2,10 +2,14 @@
 
 import { StarIcon } from "../icons/icons";
 import { ThemeToggle } from "../ui/theme-toggle";
+import { ClerkUserButton } from "@/components/elements/clerk-user-button";
+import { useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { useState } from "react";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { isSignedIn } = useUser();
 
   return (
     <header className="border-b border-zinc-200 px-4 py-4 dark:border-white/10 sm:px-6">
@@ -25,9 +29,16 @@ export function Header() {
             <span className="hidden md:inline">401</span>
           </div>
           <ThemeToggle />
-          <button className="bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200">
-            Sign In
-          </button>
+          {isSignedIn ? (
+            <ClerkUserButton />
+          ) : (
+            <Link
+              href="/sign-in"
+              className="bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -58,9 +69,16 @@ export function Header() {
             <StarIcon />
             401
           </div>
-          <button className="w-full bg-foreground py-2 text-sm font-medium text-background dark:bg-white dark:text-black">
-            Sign In
-          </button>
+          {isSignedIn ? (
+            <ClerkUserButton />
+          ) : (
+            <Link
+              href="/sign-in"
+              className="w-full bg-foreground py-2 text-center text-sm font-medium text-background dark:bg-white dark:text-black"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       )}
     </header>
