@@ -5,6 +5,7 @@ import type {
   ResourceResponse,
   ApiErrorResponse,
 } from "@/lib/api/types";
+import { uploadFile, generateObjectName } from "@/lib/storage/minio";
 
 export async function POST(request: NextRequest) {
   try {
@@ -53,23 +54,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Process the file (upload to storage, extract text, etc.)
-    // For now, this is a dummy endpoint that just validates and returns success
+    // Generate unique object name for the file
+    const objectName = generateObjectName(userId, file.name);
 
-    console.log("File uploaded:", {
+    // Upload file to MinIO
+    const { url, etag } = await uploadFile(file, objectName);
+
+    console.log("File uploaded to MinIO:", {
       name: file.name,
-      size: file.size,
-      type: file.type,
+      objectName,
+      url,
+      etag,
       language,
       userId,
     });
 
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
     // Create typed resource response
     const resource: ResourceResponse = {
-      id: Math.random().toString(36).substring(7),
+      id: etag, // Use etag as unique ID
       title: file.name.replace(".pdf", ""),
       language,
       createdAt: new Date().toISOString(),
