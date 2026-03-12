@@ -1,16 +1,27 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { resources } from "@/lib/data/resources";
 import { ResourceCard } from "@/components/ui/resource-card";
 import { Header } from "@/components/layout/header";
+import { getResources } from "./actions";
 
-export default async function ResourcesPage() {
+export default async function ResourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const { userId } = await auth();
 
   // Redirect to sign-in if not authenticated
   if (!userId) {
     redirect("/sign-in");
   }
+
+  // Get pagination parameters
+  const params = await searchParams;
+  const page = parseInt(params.page || "1");
+
+  // Fetch resources using server action
+  const { resources, total, totalPages } = await getResources(page);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -25,7 +36,7 @@ export default async function ResourcesPage() {
               My Library
             </h1>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              {resources.length} {resources.length === 1 ? "resource" : "resources"} available
+              {total} {total === 1 ? "resource" : "resources"} available
             </p>
           </div>
           <a
@@ -40,7 +51,7 @@ export default async function ResourcesPage() {
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Total Resources</p>
             <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-white">
-              {resources.length}
+              {total}
             </p>
           </div>
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
@@ -60,12 +71,45 @@ export default async function ResourcesPage() {
         {/* Resources Grid */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
           {resources.map((resource) => (
-            <ResourceCard key={resource.id} resource={resource} />
+            <ResourceCard
+              key={resource.id}
+              resource={{
+                id: resource.id,
+                title: resource.title,
+                coverUrl: resource.coverUrl,
+                createdAt: resource.createdAt,
+              }}
+            />
           ))}
         </div>
 
-        {/* Empty State (shown when no resources - for future) */}
-        {resources.length === 0 && (
+        {/* Pagination */}
+        {totalPages >= 1 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            {page > 1 && (
+              <a
+                href={`/resources?page=${page - 1}`}
+                className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+              >
+                Previous
+              </a>
+            )}
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Page {page} of {totalPages}
+            </span>
+            {page < totalPages && (
+              <a
+                href={`/resources?page=${page + 1}`}
+                className="rounded-lg border border-zinc-200 bg-white px-4 py-2 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white dark:hover:bg-zinc-800"
+              >
+                Next
+              </a>
+            )}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {total === 0 && (
           <div className="flex min-h-[400px] flex-col items-center justify-center text-center">
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900">
               <svg
