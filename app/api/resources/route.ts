@@ -6,6 +6,8 @@ import type {
   ApiErrorResponse,
 } from "@/lib/api/types";
 import { uploadFile, generateObjectName } from "@/lib/storage/minio";
+import { db } from "@/lib/db";
+import { resources } from "@/lib/db/schema";
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,12 +71,28 @@ export async function POST(request: NextRequest) {
       userId,
     });
 
+    // Save resource to database
+    const [dbResource] = await db
+      .insert(resources)
+      .values({
+        title: file.name.replace(".pdf", ""),
+        pdfUrl: url,
+        coverUrl: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
+        userId,
+        language,
+      })
+      .returning();
+
     // Create typed resource response
     const resource: ResourceResponse = {
-      id: etag, // Use etag as unique ID
-      title: file.name.replace(".pdf", ""),
-      language,
-      createdAt: new Date().toISOString(),
+      id: dbResource.id,
+      title: dbResource.title,
+      pdfUrl: dbResource.pdfUrl,
+      coverUrl: dbResource.coverUrl,
+      language: dbResource.language,
+      userId: dbResource.userId,
+      createdAt: dbResource.createdAt.toISOString(),
+      updatedAt: dbResource.updatedAt.toISOString(),
     };
 
     // Return typed success response

@@ -24,8 +24,12 @@ export interface CreateResourceRequest {
 export interface ResourceResponse {
   id: string;
   title: string;
+  pdfUrl: string;
+  coverUrl: string;
   language: string;
+  userId: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateResourceResponse {
