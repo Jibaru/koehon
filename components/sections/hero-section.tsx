@@ -52,7 +52,7 @@ export function HeroSection() {
             </span>
           }
         >
-          Star on GitHub
+          Stars
         </Button>
       </div>
     </div>

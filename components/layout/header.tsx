@@ -27,10 +27,6 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-3 sm:flex md:gap-4">
-          <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-            <StarIcon />
-            <span className="hidden md:inline">401</span>
-          </div>
           <ThemeToggle />
           {isSignedIn ? (
             <>
