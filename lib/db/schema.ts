@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, text, integer } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
 export const resources = pgTable("resources", {
@@ -14,5 +14,22 @@ export const resources = pgTable("resources", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const resourcePages = pgTable("resource_pages", {
+  id: varchar("id", { length: 21 })
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  resourceId: varchar("resource_id", { length: 21 })
+    .notNull()
+    .references(() => resources.id, { onDelete: "cascade" }),
+  page: integer("page").notNull(),
+  language: varchar("language", { length: 10 }).notNull(),
+  content: text("content").notNull(),
+  audioUrl: varchar("audio_url", { length: 512 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type Resource = typeof resources.$inferSelect;
 export type NewResource = typeof resources.$inferInsert;
+export type ResourcePage = typeof resourcePages.$inferSelect;
+export type NewResourcePage = typeof resourcePages.$inferInsert;
