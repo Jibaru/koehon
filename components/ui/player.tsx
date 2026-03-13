@@ -101,19 +101,22 @@ export function Player({ audioUrl, onEnded, autoplay = false }: PlayerProps) {
 
       {/* Progress Bar */}
       <div className="mb-3 sm:mb-4">
-        <div className="py-2">
+        <div className="relative py-2">
+          <div className="relative h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+            <div
+              className="absolute left-0 top-0 h-full bg-zinc-900 dark:bg-white"
+              style={{
+                width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
+              }}
+            />
+          </div>
           <input
             type="range"
             min="0"
             max={duration || 0}
             value={currentTime}
             onChange={handleProgressChange}
-            className="h-2 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-zinc-700 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-zinc-900 [&::-webkit-slider-thumb]:dark:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-zinc-900 [&::-moz-range-thumb]:dark:bg-white"
-            style={{
-              background: `linear-gradient(to right, #000 ${
-                (currentTime / duration) * 100
-              }%, #e4e4e7 ${(currentTime / duration) * 100}%)`,
-            }}
+            className="absolute left-0 top-0 h-full w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-zinc-900 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:dark:border-zinc-900 [&::-webkit-slider-thumb]:dark:bg-white [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-zinc-900 [&::-moz-range-thumb]:shadow-lg [&::-moz-range-thumb]:dark:border-zinc-900 [&::-moz-range-thumb]:dark:bg-white"
           />
         </div>
         <div className="mt-1 flex justify-between text-xs text-zinc-600 dark:text-zinc-400">
