@@ -48,3 +48,20 @@ export interface ResourcePageResponse {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface BulkGeneratePagesRequest {
+  pages: Array<{
+    page: number;
+    language: string;
+  }>;
+}
+
+export interface BulkGeneratePagesResponse {
+  success: boolean;
+  pages: ResourcePageResponse[];
+  errors?: Array<{
+    page: number;
+    language: string;
+    error: string;
+  }>;
+}

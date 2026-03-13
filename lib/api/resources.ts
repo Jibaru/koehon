@@ -3,6 +3,8 @@ import type {
   CreateResourceRequest,
   CreateResourceResponse,
   ResourcePageResponse,
+  BulkGeneratePagesRequest,
+  BulkGeneratePagesResponse,
 } from "./types";
 
 export const resourcesApi = {
@@ -27,6 +29,16 @@ export const resourcesApi = {
   ): Promise<ResourcePageResponse> {
     return apiClient.get<ResourcePageResponse>(
       `/resources/${resourceId}/pages/${page}?language=${language}`
+    );
+  },
+
+  async bulkGeneratePages(
+    resourceId: string,
+    data: BulkGeneratePagesRequest
+  ): Promise<BulkGeneratePagesResponse> {
+    return apiClient.post<BulkGeneratePagesResponse, BulkGeneratePagesRequest>(
+      `/resources/${resourceId}/pages/bulk`,
+      data
     );
   },
 };

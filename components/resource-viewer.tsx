@@ -28,17 +28,46 @@ export function ResourceViewer({
       try {
         const data = await resourcesApi.getPage(resourceId, page, language);
         setAudioUrl(data.audioUrl);
+        setIsLoadingPage(false);
       } catch (error: any) {
         // Check if it's a 404 error (page doesn't exist yet)
         if (error?.status === 404 || error?.error === "Page not found") {
           setAudioUrl(null);
-          console.log(`Page ${page} not found - needs to be generated`);
+          console.log(`Page ${page} not found - triggering bulk generation`);
+
+          // Trigger bulk generation for current page + next 2 pages
+          const pagesToGenerate = [
+            { page: page, language },
+            { page: page + 1, language },
+            { page: page + 2, language },
+          ];
+
+          // Fire and forget - don't wait for generation to complete
+          resourcesApi
+            .bulkGeneratePages(resourceId, { pages: pagesToGenerate })
+            .then(() => {
+              console.log("Bulk generation started for pages", pagesToGenerate);
+              // After generation completes, try fetching the page again
+              resourcesApi
+                .getPage(resourceId, page, language)
+                .then((data) => {
+                  setAudioUrl(data.audioUrl);
+                  setIsLoadingPage(false);
+                })
+                .catch(() => {
+                  // If still not available, just stop loading
+                  setIsLoadingPage(false);
+                });
+            })
+            .catch((err) => {
+              console.error("Error during bulk generation:", err);
+              setIsLoadingPage(false);
+            });
         } else {
           console.error("Error fetching page data:", error);
           setAudioUrl(null);
+          setIsLoadingPage(false);
         }
-      } finally {
-        setIsLoadingPage(false);
       }
     },
     [resourceId, language]
