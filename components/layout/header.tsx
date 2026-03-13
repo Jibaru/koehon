@@ -76,7 +76,7 @@ export function Header() {
         <div className="mt-4 flex flex-col gap-4 border-t border-zinc-200 pt-4 dark:border-white/10 sm:hidden">
           <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <StarIcon />
-            401
+            1
           </div>
           {isSignedIn ? (
             <>

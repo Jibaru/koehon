@@ -31,19 +31,26 @@ export function HeroSection() {
             Try It Free
           </Button>
         </Link>
-        <Button
-          variant="secondary"
-          leftIcon={<GitHubIcon />}
+        <a
+          href="https://github.com/crafter-station/koehon"
+          target="_blank"
+          rel="noopener noreferrer"
           className="sm:w-auto"
-          rightIcon={
-            <span className="flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-400">
-              <StarIcon />
-              401
-            </span>
-          }
         >
-          Stars
-        </Button>
+          <Button
+            variant="secondary"
+            leftIcon={<GitHubIcon />}
+            className="sm:w-auto"
+            rightIcon={
+              <span className="flex items-center gap-1 text-sm text-zinc-600 dark:text-zinc-400">
+                <StarIcon />
+                1
+              </span>
+            }
+          >
+            Stars
+          </Button>
+        </a>
       </div>
     </div>
   );
