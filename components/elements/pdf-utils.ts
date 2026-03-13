@@ -1,3 +1,5 @@
+"use client";
+
 import { PDFDocument } from "pdf-lib";
 import { pdfjs } from "react-pdf";
 
