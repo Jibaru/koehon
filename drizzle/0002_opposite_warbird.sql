@@ -1,0 +1,1 @@
+ALTER TABLE "resource_pages" ADD CONSTRAINT "resource_pages_resource_id_page_language_unique" UNIQUE("resource_id","page","language");
