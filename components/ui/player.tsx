@@ -6,15 +6,32 @@ interface PlayerProps {
   audioUrl: string;
   onEnded?: () => void;
   autoplay?: boolean;
+  volume?: number;
+  playbackRate?: number;
+  onVolumeChange?: (volume: number) => void;
+  onPlaybackRateChange?: (rate: number) => void;
 }
 
-export function Player({ audioUrl, onEnded, autoplay = false }: PlayerProps) {
+export function Player({
+  audioUrl,
+  onEnded,
+  autoplay = false,
+  volume: externalVolume,
+  playbackRate: externalPlaybackRate,
+  onVolumeChange,
+  onPlaybackRateChange,
+}: PlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
-  const [playbackRate, setPlaybackRate] = useState(1);
+
+  // Use controlled props if provided, otherwise use internal state
+  const [internalVolume, setInternalVolume] = useState(1);
+  const [internalPlaybackRate, setInternalPlaybackRate] = useState(1);
+
+  const volume = externalVolume !== undefined ? externalVolume : internalVolume;
+  const playbackRate = externalPlaybackRate !== undefined ? externalPlaybackRate : internalPlaybackRate;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -37,6 +54,15 @@ export function Player({ audioUrl, onEnded, autoplay = false }: PlayerProps) {
       audio.removeEventListener("ended", handleEnded);
     };
   }, [onEnded]);
+
+  // Apply volume and playbackRate to audio element when they change
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = volume;
+    audio.playbackRate = playbackRate;
+  }, [volume, playbackRate]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -65,16 +91,24 @@ export function Player({ audioUrl, onEnded, autoplay = false }: PlayerProps) {
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+    if (onVolumeChange) {
+      onVolumeChange(newVolume);
+    } else {
+      setInternalVolume(newVolume);
+      if (audioRef.current) {
+        audioRef.current.volume = newVolume;
+      }
     }
   };
 
   const handleSpeedChange = (speed: number) => {
-    setPlaybackRate(speed);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = speed;
+    if (onPlaybackRateChange) {
+      onPlaybackRateChange(speed);
+    } else {
+      setInternalPlaybackRate(speed);
+      if (audioRef.current) {
+        audioRef.current.playbackRate = speed;
+      }
     }
   };
 

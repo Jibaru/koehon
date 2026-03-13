@@ -21,6 +21,8 @@ export function ResourceViewer({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   const fetchPageData = useCallback(
     async (page: number) => {
@@ -141,6 +143,10 @@ export function ResourceViewer({
               audioUrl={audioUrl}
               onEnded={handleAudioEnded}
               autoplay={isAutoplayEnabled}
+              volume={volume}
+              playbackRate={playbackRate}
+              onVolumeChange={setVolume}
+              onPlaybackRateChange={setPlaybackRate}
             />
           </div>
         ) : (
