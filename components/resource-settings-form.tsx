@@ -210,11 +210,18 @@ export function ResourceSettingsForm({
               placeholder="Enter resource title"
             />
           </div>
-          <div>
-            <Button onClick={handleUpdateTitle} disabled={isUpdatingTitle}>
-              {isUpdatingTitle ? "Updating..." : "Update Title"}
-            </Button>
-          </div>
+          {isUpdatingTitle ? (
+            <div className="flex items-center gap-3 rounded border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-800">
+              <LoaderDotMatrix rows={3} cols={5} dotSize={6} />
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Updating title...
+              </p>
+            </div>
+          ) : (
+            <div>
+              <Button onClick={handleUpdateTitle}>Update Title</Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -248,20 +255,19 @@ export function ResourceSettingsForm({
               />
             </div>
           </div>
-          <div>
-            <Button onClick={handlePreloadPages} disabled={isPreloading}>
-              {isPreloading ? "Pre-loading..." : "Pre-load Pages"}
-            </Button>
-          </div>
+          {isPreloading ? (
+            <div className="flex items-center gap-3 rounded border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-800">
+              <LoaderDotMatrix rows={3} cols={5} dotSize={6} />
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Generating pages...
+              </p>
+            </div>
+          ) : (
+            <div>
+              <Button onClick={handlePreloadPages}>Pre-load Pages</Button>
+            </div>
+          )}
         </div>
-        {isPreloading && (
-          <div className="mt-4 flex items-center gap-3 rounded border border-zinc-200 bg-zinc-50 p-4 dark:border-white/10 dark:bg-zinc-800">
-            <LoaderDotMatrix rows={3} cols={5} dotSize={6} />
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Generating pages...
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
@@ -307,37 +313,32 @@ export function ResourceSettingsForm({
           >
             Delete Resource
           </Button>
+        ) : isDeleting ? (
+          <div className="flex items-center gap-3 rounded border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
+            <LoaderDotMatrix rows={3} cols={5} dotSize={6} />
+            <p className="text-sm text-red-700 dark:text-red-300">
+              Deleting resource and all associated files...
+            </p>
+          </div>
         ) : (
-          <div className="space-y-4">
-            <div className="rounded border border-red-300 bg-red-100 p-4 dark:border-red-800 dark:bg-red-900/30">
-              <p className="mb-4 font-semibold text-red-900 dark:text-red-100">
-                Are you sure? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleDeleteResource}
-                  disabled={isDeleting}
-                  className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                >
-                  {isDeleting ? "Deleting..." : "Yes, Delete Permanently"}
-                </Button>
-                <Button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                  className="bg-zinc-200 text-zinc-900 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
-                >
-                  Cancel
-                </Button>
-              </div>
+          <div className="rounded border border-red-300 bg-red-100 p-4 dark:border-red-800 dark:bg-red-900/30">
+            <p className="mb-4 font-semibold text-red-900 dark:text-red-100">
+              Are you sure? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleDeleteResource}
+                className="bg-red-600 text-white hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+              >
+                Yes, Delete Permanently
+              </Button>
+              <Button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="bg-zinc-200 text-zinc-900 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-white dark:hover:bg-zinc-600"
+              >
+                Cancel
+              </Button>
             </div>
-            {isDeleting && (
-              <div className="flex items-center gap-3 rounded border border-red-200 bg-red-50 p-4 dark:border-red-900/50 dark:bg-red-950/20">
-                <LoaderDotMatrix rows={3} cols={5} dotSize={6} />
-                <p className="text-sm text-red-700 dark:text-red-300">
-                  Deleting resource and all associated files...
-                </p>
-              </div>
-            )}
           </div>
         )}
       </div>
