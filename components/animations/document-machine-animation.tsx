@@ -1,12 +1,58 @@
 "use client";
 
+import { useRef, useState, useEffect } from "react";
+
 export function DocumentMachineAnimation() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [transform, setTransform] = useState({ rotateX: 0, rotateY: 0 });
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      // Calculate rotation based on mouse position
+      // Multiply by a factor to control the intensity of the effect
+      const rotateY = ((x - centerX) / centerX) * 20; // max 20 degrees
+      const rotateX = ((centerY - y) / centerY) * 20; // max 20 degrees (inverted)
+
+      setTransform({ rotateX, rotateY });
+    };
+
+    const handleMouseLeave = () => {
+      setTransform({ rotateX: 0, rotateY: 0 });
+    };
+
+    container.addEventListener("mousemove", handleMouseMove);
+    container.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      container.removeEventListener("mousemove", handleMouseMove);
+      container.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
+
   return (
-    <div className="relative mx-auto w-full max-w-4xl">
+    <div
+      ref={containerRef}
+      className="relative mx-auto w-full max-w-4xl"
+      style={{ perspective: "1000px" }}
+    >
       <svg
-        viewBox="0 0 800 400"
+        viewBox="0 70 800 260"
         xmlns="http://www.w3.org/2000/svg"
-        className="w-full"
+        className="w-full transition-transform duration-200 ease-out"
+        style={{
+          transform: `rotateX(${transform.rotateX}deg) rotateY(${transform.rotateY}deg)`,
+          transformStyle: "preserve-3d"
+        }}
       >
         <defs>
           {/* Page template with folded corner */}
@@ -45,20 +91,20 @@ export function DocumentMachineAnimation() {
           <line x1="490" y1="230" x2="750" y2="230" strokeWidth="1"/>
         </g>
 
-        {/* Documents entering from left - BEHIND cassette */}
+        {/* Documents entering from left - BEHIND cassette - Continuous flow */}
         <g>
           <animateTransform
             attributeName="transform"
             type="translate"
-            values="50,170; 230,170; 280,170"
-            dur="6s"
+            values="50,170; 350,170"
+            dur="5s"
             repeatCount="indefinite"
           />
           <animate
             attributeName="opacity"
-            values="0; 1; 0"
-            keyTimes="0; 0.3; 0.5"
-            dur="6s"
+            values="0; 1; 1; 0"
+            keyTimes="0; 0.08; 0.7; 0.9"
+            dur="5s"
             repeatCount="indefinite"
           />
           <use href="#page" x="0" y="0" />
@@ -68,17 +114,17 @@ export function DocumentMachineAnimation() {
           <animateTransform
             attributeName="transform"
             type="translate"
-            values="50,170; 230,170; 280,170"
-            dur="6s"
-            begin="1.5s"
+            values="50,170; 350,170"
+            dur="5s"
+            begin="1.25s"
             repeatCount="indefinite"
           />
           <animate
             attributeName="opacity"
-            values="0; 1; 0"
-            keyTimes="0; 0.3; 0.5"
-            dur="6s"
-            begin="1.5s"
+            values="0; 1; 1; 0"
+            keyTimes="0; 0.08; 0.7; 0.9"
+            dur="5s"
+            begin="1.25s"
             repeatCount="indefinite"
           />
           <use href="#page" x="0" y="0" />
@@ -88,17 +134,37 @@ export function DocumentMachineAnimation() {
           <animateTransform
             attributeName="transform"
             type="translate"
-            values="50,170; 230,170; 280,170"
-            dur="6s"
-            begin="3s"
+            values="50,170; 350,170"
+            dur="5s"
+            begin="2.5s"
             repeatCount="indefinite"
           />
           <animate
             attributeName="opacity"
-            values="0; 1; 0"
-            keyTimes="0; 0.3; 0.5"
-            dur="6s"
-            begin="3s"
+            values="0; 1; 1; 0"
+            keyTimes="0; 0.08; 0.7; 0.9"
+            dur="5s"
+            begin="2.5s"
+            repeatCount="indefinite"
+          />
+          <use href="#page" x="0" y="0" />
+        </g>
+
+        <g>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="50,170; 350,170"
+            dur="5s"
+            begin="3.75s"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="opacity"
+            values="0; 1; 1; 0"
+            keyTimes="0; 0.08; 0.7; 0.9"
+            dur="5s"
+            begin="3.75s"
             repeatCount="indefinite"
           />
           <use href="#page" x="0" y="0" />
@@ -310,7 +376,7 @@ export function DocumentMachineAnimation() {
 
       {/* Text below matching original style */}
       <h1 className="mt-8 bg-gradient-to-br from-black to-zinc-600 bg-clip-text text-center font-mono text-4xl font-bold tracking-tight text-transparent dark:from-white dark:to-zinc-400 sm:text-5xl md:text-6xl lg:text-7xl">
-        listen to your documents
+        声本 ~ Koehon
       </h1>
     </div>
   );
