@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Player } from "@/components/ui/player";
+import { PdfViewer } from "@/components/elements/pdf-viewer";
 import { getResource } from "../actions";
 
 export default async function ResourcePage({
@@ -43,14 +44,9 @@ export default async function ResourcePage({
           </p>
         </div>
 
-        {/* PDF Viewer Area */}
+        {/* PDF Viewer */}
         <div className="mb-8">
-          <div className="aspect-[3/4] w-full border border-zinc-200 bg-zinc-50 dark:border-white/10 dark:bg-zinc-900">
-            {/* PDF viewer will be added here later */}
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-zinc-400">PDF Viewer</p>
-            </div>
-          </div>
+          <PdfViewer file={resource.pdfUrl} mode="single" className="h-[800px]" />
         </div>
 
         {/* Audio Player */}
