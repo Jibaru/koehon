@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ResourceCard } from "@/components/ui/resource-card";
 import { Header } from "@/components/layout/header";
-import { getResources } from "./actions";
+import { getResources, getTotalAudioHours } from "./actions";
 
 export default async function ResourcesPage({
   searchParams,
@@ -20,8 +20,11 @@ export default async function ResourcesPage({
   const params = await searchParams;
   const page = parseInt(params.page || "1");
 
-  // Fetch resources using server action
-  const { resources, total, totalPages } = await getResources(page);
+  // Fetch resources and total audio hours using server actions
+  const [{ resources, total, totalPages }, totalHours] = await Promise.all([
+    getResources(page),
+    getTotalAudioHours(),
+  ]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -55,9 +58,9 @@ export default async function ResourcesPage({
             </p>
           </div>
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Hours Listened</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">Total Hours Extracted</p>
             <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-white">
-              24.5
+              {totalHours}
             </p>
           </div>
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-white/10 dark:bg-zinc-900">

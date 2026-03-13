@@ -1,0 +1,1 @@
+ALTER TABLE "resource_pages" ADD COLUMN "audio_duration" integer DEFAULT 0 NOT NULL;

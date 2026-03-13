@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { resources, resourcePages } from "@/lib/db/schema";
-import { desc, eq, count } from "drizzle-orm";
+import { desc, eq, count, sum, sql } from "drizzle-orm";
 
 export interface GetResourcesResult {
   resources: Array<{
@@ -128,4 +128,27 @@ export async function getResourceWithLoadedPages(
     resource,
     loadedPages,
   };
+}
+
+export async function getTotalAudioHours(): Promise<number> {
+  const { userId } = await auth();
+
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  // Sum all audio durations for the user's resources
+  const result = await db
+    .select({
+      totalSeconds: sum(resourcePages.audioDuration),
+    })
+    .from(resourcePages)
+    .innerJoin(resources, eq(resourcePages.resourceId, resources.id))
+    .where(eq(resources.userId, userId));
+
+  const totalSeconds = result[0]?.totalSeconds || 0;
+
+  // Convert seconds to hours and round to 1 decimal place
+  const totalHours = Number(totalSeconds) / 3600;
+  return Math.round(totalHours * 10) / 10;
 }

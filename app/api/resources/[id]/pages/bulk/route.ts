@@ -12,6 +12,7 @@ import {
 } from "@/lib/openai";
 import { fetchPdfAsFile } from "@/lib/pdf-utils.server";
 import { uploadFile, generateObjectName } from "@/lib/storage/minio";
+import { getAudioDuration } from "@/lib/audio-utils";
 
 interface BulkPageRequest {
   pages: Array<{
@@ -115,7 +116,10 @@ export async function POST(
             // 3. Convert translated text to audio using OpenAI TTS
             const audioBlob = await generateAudio(translatedText);
 
-            // 4. Upload audio to MinIO
+            // 4. Get audio duration
+            const audioDuration = await getAudioDuration(audioBlob);
+
+            // 5. Upload audio to MinIO
             const audioFile = new File(
               [audioBlob],
               `${resource.id}-page-${page}-${language}.mp3`,
@@ -124,7 +128,7 @@ export async function POST(
             const audioObjectName = generateObjectName(userId, audioFile.name);
             const { url: audioUrl } = await uploadFile(audioFile, audioObjectName);
 
-            // 5. Store resource page in database
+            // 6. Store resource page in database
             const [newPage] = await db
               .insert(resourcePages)
               .values({
@@ -133,6 +137,7 @@ export async function POST(
                 language,
                 content: translatedText,
                 audioUrl,
+                audioDuration,
               })
               .returning();
 
@@ -147,6 +152,7 @@ export async function POST(
                 language: newPage.language,
                 content: newPage.content,
                 audioUrl: newPage.audioUrl,
+                audioDuration: newPage.audioDuration,
                 createdAt: newPage.createdAt.toISOString(),
                 updatedAt: newPage.updatedAt.toISOString(),
               },

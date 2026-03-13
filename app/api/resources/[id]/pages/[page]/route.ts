@@ -92,6 +92,7 @@ export async function GET(
         language: resourcePage.language,
         content: resourcePage.content,
         audioUrl: resourcePage.audioUrl,
+        audioDuration: resourcePage.audioDuration,
         createdAt: resourcePage.createdAt.toISOString(),
         updatedAt: resourcePage.updatedAt.toISOString(),
       },

@@ -22,6 +22,20 @@
       "when": 1773374684655,
       "tag": "0002_opposite_warbird",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773412323176,
+      "tag": "0003_misty_night_thrasher",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773412688801,
+      "tag": "0004_swift_vance_astro",
+      "breakpoints": true
     }
   ]
 }

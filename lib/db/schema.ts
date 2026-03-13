@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp, text, integer, unique } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, text, integer, unique, index } from "drizzle-orm/pg-core";
 import { nanoid } from "nanoid";
 
 export const resources = pgTable("resources", {
@@ -25,11 +25,14 @@ export const resourcePages = pgTable("resource_pages", {
   language: varchar("language", { length: 10 }).notNull(),
   content: text("content").notNull(),
   audioUrl: varchar("audio_url", { length: 512 }).notNull(),
+  audioDuration: integer("audio_duration").notNull().default(0), // Duration in seconds
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   // Unique constraint: one page per language per resource
   uniqueResourcePageLanguage: unique().on(table.resourceId, table.page, table.language),
+  // Index for faster audio duration aggregation queries
+  resourceIdIdx: index("resource_pages_resource_id_idx").on(table.resourceId),
 }));
 
 export type Resource = typeof resources.$inferSelect;

@@ -45,6 +45,7 @@ export interface ResourcePageResponse {
   language: string;
   content: string;
   audioUrl: string;
+  audioDuration: number;
   createdAt: string;
   updatedAt: string;
 }

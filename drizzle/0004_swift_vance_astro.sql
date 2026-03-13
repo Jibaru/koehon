@@ -1,0 +1,1 @@
+CREATE INDEX "resource_pages_resource_id_idx" ON "resource_pages" USING btree ("resource_id");
