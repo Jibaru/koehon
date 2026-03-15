@@ -45,20 +45,26 @@ export function PdfViewer({
   const [zoom, setZoom] = React.useState<number>(initialZoom);
   const [pageWidth, setPageWidth] = React.useState<number>(0);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const isUpdatingFromProp = React.useRef(false);
 
   // Sync internal state with external page prop
   React.useEffect(() => {
     if (page !== undefined && page !== currentPage) {
+      isUpdatingFromProp.current = true;
       setCurrentPage(page);
     }
-  }, [page]);
+  }, [page, currentPage]);
 
-  // Call onPageChange when currentPage changes
+  // Call onPageChange when currentPage changes (only if not from prop)
   React.useEffect(() => {
+    if (isUpdatingFromProp.current) {
+      isUpdatingFromProp.current = false;
+      return;
+    }
     if (onPageChange && currentPage !== page) {
       onPageChange(currentPage);
     }
-  }, [currentPage, onPageChange]);
+  }, [currentPage, onPageChange, page]);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);

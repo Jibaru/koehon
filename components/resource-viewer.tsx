@@ -11,6 +11,7 @@ interface ResourceViewerProps {
   resourceId: string;
   pdfUrl: string;
   language: string;
+  initialPage?: number;
 }
 
 // Generate a random bookmark name
@@ -26,8 +27,9 @@ export function ResourceViewer({
   resourceId,
   pdfUrl,
   language,
+  initialPage = 1,
 }: ResourceViewerProps) {
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isLoadingPage, setIsLoadingPage] = useState(false);
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(false);
@@ -128,12 +130,11 @@ export function ResourceViewer({
     [resourceId, language]
   );
 
-  // Load bookmarks on mount
+  // Load bookmarks on mount only
   useEffect(() => {
-    loadBookmarks().then((loadedBookmarks) => {
-      checkCurrentPageBookmark(currentPage, loadedBookmarks);
-    });
-  }, [loadBookmarks, checkCurrentPageBookmark, currentPage]);
+    loadBookmarks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Check bookmark when page changes
   useEffect(() => {

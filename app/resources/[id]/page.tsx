@@ -7,8 +7,10 @@ import { getResource } from "../actions";
 
 export default async function ResourcePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { userId } = await auth();
 
@@ -19,6 +21,10 @@ export default async function ResourcePage({
 
   // Get resource ID from params
   const { id } = await params;
+
+  // Get initial page from search params
+  const { page } = await searchParams;
+  const initialPage = page ? parseInt(page, 10) : 1;
 
   // Fetch resource
   const resource = await getResource(id);
@@ -44,12 +50,20 @@ export default async function ResourcePage({
               {new Date(resource.createdAt).toLocaleDateString()}
             </p>
           </div>
-          <Link
-            href={`/resources/${resource.id}/settings`}
-            className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-          >
-            Settings
-          </Link>
+          <div className="flex gap-4">
+            <Link
+              href={`/resources/${resource.id}/bookmarks`}
+              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            >
+              Bookmarks
+            </Link>
+            <Link
+              href={`/resources/${resource.id}/settings`}
+              className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+            >
+              Settings
+            </Link>
+          </div>
         </div>
 
         {/* Resource Viewer with PDF and Audio Player */}
@@ -58,6 +72,7 @@ export default async function ResourcePage({
             resourceId={resource.id}
             pdfUrl={resource.pdfUrl}
             language={resource.language}
+            initialPage={initialPage}
           />
         </div>
       </main>
