@@ -35,7 +35,25 @@ export const resourcePages = pgTable("resource_pages", {
   resourceIdIdx: index("resource_pages_resource_id_idx").on(table.resourceId),
 }));
 
+export const bookmarks = pgTable("bookmarks", {
+  id: varchar("id", { length: 21 })
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  resourceId: varchar("resource_id", { length: 21 })
+    .notNull()
+    .references(() => resources.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 255 }).notNull(),
+  page: integer("page").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Index for faster queries by resource
+  resourceIdIdx: index("bookmarks_resource_id_idx").on(table.resourceId),
+}));
+
 export type Resource = typeof resources.$inferSelect;
 export type NewResource = typeof resources.$inferInsert;
 export type ResourcePage = typeof resourcePages.$inferSelect;
 export type NewResourcePage = typeof resourcePages.$inferInsert;
+export type Bookmark = typeof bookmarks.$inferSelect;
+export type NewBookmark = typeof bookmarks.$inferInsert;

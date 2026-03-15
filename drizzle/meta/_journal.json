@@ -36,6 +36,13 @@
       "when": 1773412688801,
       "tag": "0004_swift_vance_astro",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773538638289,
+      "tag": "0005_pink_wraith",
+      "breakpoints": true
     }
   ]
 }
