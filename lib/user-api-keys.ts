@@ -1,0 +1,42 @@
+import { db } from "@/lib/db";
+import { userApiKeys } from "@/lib/db/schema";
+import { eq, and } from "drizzle-orm";
+import { decrypt } from "@/lib/encryption";
+
+/**
+ * Get a user's custom API key for a specific provider
+ * Returns the decrypted API key or null if not found
+ */
+export async function getUserApiKey(
+  userId: string,
+  provider: string = "openai"
+): Promise<string | null> {
+  try {
+    const [apiKey] = await db
+      .select({
+        apiKey: userApiKeys.apiKey,
+      })
+      .from(userApiKeys)
+      .where(and(eq(userApiKeys.userId, userId), eq(userApiKeys.provider, provider)))
+      .limit(1);
+
+    if (!apiKey) {
+      return null;
+    }
+
+    // Decrypt the API key before returning
+    return decrypt(apiKey.apiKey);
+  } catch (error) {
+    console.error(`Error retrieving API key for user ${userId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get the OpenAI API key to use for a specific user
+ * Returns the user's custom key if available, otherwise the default key
+ */
+export async function getOpenAiApiKey(userId: string): Promise<string> {
+  const customKey = await getUserApiKey(userId, "openai");
+  return customKey || process.env.OPENAI_API_KEY || "";
+}

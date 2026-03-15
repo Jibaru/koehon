@@ -51,9 +51,27 @@ export const bookmarks = pgTable("bookmarks", {
   resourceIdIdx: index("bookmarks_resource_id_idx").on(table.resourceId),
 }));
 
+export const userApiKeys = pgTable("user_api_keys", {
+  id: varchar("id", { length: 21 })
+    .primaryKey()
+    .$defaultFn(() => nanoid()),
+  apiKey: varchar("api_key", { length: 512 }).notNull(), // Increased for encrypted data (iv:encryptedData)
+  provider: varchar("provider", { length: 50 }).notNull().default("openai"),
+  userId: varchar("user_id", { length: 255 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  // Index for faster queries by user
+  userIdIdx: index("user_api_keys_user_id_idx").on(table.userId),
+  // Unique constraint: one API key per provider per user
+  uniqueUserProvider: unique().on(table.userId, table.provider),
+}));
+
 export type Resource = typeof resources.$inferSelect;
 export type NewResource = typeof resources.$inferInsert;
 export type ResourcePage = typeof resourcePages.$inferSelect;
 export type NewResourcePage = typeof resourcePages.$inferInsert;
 export type Bookmark = typeof bookmarks.$inferSelect;
 export type NewBookmark = typeof bookmarks.$inferInsert;
+export type UserApiKey = typeof userApiKeys.$inferSelect;
+export type NewUserApiKey = typeof userApiKeys.$inferInsert;
