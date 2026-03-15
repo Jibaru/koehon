@@ -5,11 +5,21 @@ import { PdfViewer } from "./elements/pdf-viewer";
 import { Player } from "./ui/player";
 import { LoaderDotMatrix } from "./elements/loader-dot-matrix";
 import { resourcesApi } from "@/lib/api";
+import type { BookmarkResponse } from "@/lib/api/types";
 
 interface ResourceViewerProps {
   resourceId: string;
   pdfUrl: string;
   language: string;
+}
+
+// Generate a random bookmark name
+function generateBookmarkName(): string {
+  const adjectives = ["Quick", "Bright", "Silent", "Swift", "Golden", "Silver", "Crystal", "Jade", "Ruby", "Pearl"];
+  const nouns = ["Star", "Moon", "Wave", "Storm", "Cloud", "River", "Forest", "Mountain", "Valley", "Ocean"];
+  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  return `${adj} ${noun}`;
 }
 
 export function ResourceViewer({
@@ -23,6 +33,54 @@ export function ResourceViewer({
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(false);
   const [volume, setVolume] = useState(1);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [bookmarks, setBookmarks] = useState<BookmarkResponse[]>([]);
+  const [currentPageBookmark, setCurrentPageBookmark] = useState<BookmarkResponse | null>(null);
+  const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+
+  const loadBookmarks = useCallback(async () => {
+    try {
+      const data = await resourcesApi.getBookmarks(resourceId);
+      setBookmarks(data.bookmarks);
+      return data.bookmarks;
+    } catch (error) {
+      console.error("Error loading bookmarks:", error);
+      return [];
+    }
+  }, [resourceId]);
+
+  const checkCurrentPageBookmark = useCallback((page: number, bookmarksList: BookmarkResponse[]) => {
+    const bookmark = bookmarksList.find((b) => b.page === page);
+    setCurrentPageBookmark(bookmark || null);
+  }, []);
+
+  const toggleBookmark = useCallback(async () => {
+    if (isBookmarkLoading) return;
+
+    setIsBookmarkLoading(true);
+    try {
+      if (currentPageBookmark) {
+        // Delete bookmark
+        await resourcesApi.deleteBookmark(resourceId, currentPageBookmark.id);
+        const updatedBookmarks = bookmarks.filter((b) => b.id !== currentPageBookmark.id);
+        setBookmarks(updatedBookmarks);
+        setCurrentPageBookmark(null);
+      } else {
+        // Create bookmark
+        const name = generateBookmarkName();
+        const response = await resourcesApi.createBookmark(resourceId, {
+          page: currentPage,
+          name,
+        });
+        const updatedBookmarks = [...bookmarks, response.bookmark];
+        setBookmarks(updatedBookmarks);
+        setCurrentPageBookmark(response.bookmark);
+      }
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
+    } finally {
+      setIsBookmarkLoading(false);
+    }
+  }, [resourceId, currentPage, currentPageBookmark, bookmarks, isBookmarkLoading]);
 
   const fetchPageData = useCallback(
     async (page: number) => {
@@ -70,6 +128,18 @@ export function ResourceViewer({
     [resourceId, language]
   );
 
+  // Load bookmarks on mount
+  useEffect(() => {
+    loadBookmarks().then((loadedBookmarks) => {
+      checkCurrentPageBookmark(currentPage, loadedBookmarks);
+    });
+  }, [loadBookmarks, checkCurrentPageBookmark, currentPage]);
+
+  // Check bookmark when page changes
+  useEffect(() => {
+    checkCurrentPageBookmark(currentPage, bookmarks);
+  }, [currentPage, bookmarks, checkCurrentPageBookmark]);
+
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchPageData(currentPage);
@@ -108,7 +178,32 @@ export function ResourceViewer({
           </div>
         ) : audioUrl ? (
           <div className="space-y-2">
-            <div className="relative z-10 flex items-center justify-end px-4 pb-2">
+            <div className="relative z-10 flex items-center justify-between px-4 pb-2">
+              <button
+                onClick={toggleBookmark}
+                disabled={isBookmarkLoading}
+                className={
+                  currentPageBookmark
+                    ? "relative z-10 flex items-center gap-2 rounded bg-yellow-500 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-yellow-600 disabled:opacity-50 dark:bg-yellow-600 dark:hover:bg-yellow-700"
+                    : "relative z-10 flex items-center gap-2 rounded bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 disabled:opacity-50 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+                }
+                title={currentPageBookmark ? `Bookmarked: ${currentPageBookmark.name}` : "Add bookmark"}
+              >
+                <svg
+                  className="h-4 w-4"
+                  fill={currentPageBookmark ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
+                  />
+                </svg>
+                {currentPageBookmark ? currentPageBookmark.name : "Bookmark"}
+              </button>
               <button
                 onClick={() => setIsAutoplayEnabled(!isAutoplayEnabled)}
                 className={

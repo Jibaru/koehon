@@ -5,6 +5,9 @@ import type {
   ResourcePageResponse,
   BulkGeneratePagesRequest,
   BulkGeneratePagesResponse,
+  GetBookmarksResponse,
+  CreateBookmarkRequest,
+  CreateBookmarkResponse,
 } from "./types";
 
 export const resourcesApi = {
@@ -54,5 +57,31 @@ export const resourcesApi = {
 
   async delete(resourceId: string): Promise<{ success: boolean }> {
     return apiClient.delete<{ success: boolean }>(`/resources/${resourceId}`);
+  },
+
+  // Bookmarks
+  async getBookmarks(resourceId: string): Promise<GetBookmarksResponse> {
+    return apiClient.get<GetBookmarksResponse>(
+      `/resources/${resourceId}/bookmarks`
+    );
+  },
+
+  async createBookmark(
+    resourceId: string,
+    data: CreateBookmarkRequest
+  ): Promise<CreateBookmarkResponse> {
+    return apiClient.post<CreateBookmarkResponse, CreateBookmarkRequest>(
+      `/resources/${resourceId}/bookmarks`,
+      data
+    );
+  },
+
+  async deleteBookmark(
+    resourceId: string,
+    bookmarkId: string
+  ): Promise<{ success: boolean }> {
+    return apiClient.delete<{ success: boolean }>(
+      `/resources/${resourceId}/bookmarks/${bookmarkId}`
+    );
   },
 };

@@ -66,3 +66,26 @@ export interface BulkGeneratePagesResponse {
     error: string;
   }>;
 }
+
+// Bookmark Types
+export interface BookmarkResponse {
+  id: string;
+  resourceId: string;
+  name: string;
+  page: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GetBookmarksResponse {
+  bookmarks: BookmarkResponse[];
+}
+
+export interface CreateBookmarkRequest {
+  page: number;
+  name: string;
+}
+
+export interface CreateBookmarkResponse {
+  bookmark: BookmarkResponse;
+}
