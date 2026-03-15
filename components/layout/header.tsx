@@ -6,13 +6,10 @@ import { ClerkUserButton } from "@/components/elements/clerk-user-button";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isSignedIn } = useUser();
-  const pathname = usePathname();
-  const isResourcesPage = pathname === "/resources";
 
   return (
     <header className="border-b border-zinc-200 px-4 py-4 dark:border-white/10 sm:px-6">
@@ -29,17 +26,7 @@ export function Header() {
         <div className="hidden items-center gap-3 sm:flex md:gap-4">
           <ThemeToggle />
           {isSignedIn ? (
-            <>
-              {!isResourcesPage && (
-                <Link
-                  href="/resources"
-                  className="text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-                >
-                  Library
-                </Link>
-              )}
-              <ClerkUserButton />
-            </>
+            <ClerkUserButton />
           ) : (
             <Link
               href="/sign-in"
@@ -79,17 +66,7 @@ export function Header() {
             1
           </div>
           {isSignedIn ? (
-            <>
-              {!isResourcesPage && (
-                <Link
-                  href="/resources"
-                  className="text-sm font-medium text-zinc-600 dark:text-zinc-400"
-                >
-                  Library
-                </Link>
-              )}
-              <ClerkUserButton />
-            </>
+            <ClerkUserButton />
           ) : (
             <Link
               href="/sign-in"

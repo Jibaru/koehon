@@ -1,9 +1,14 @@
+"use client";
+
 import { Button } from "../ui/button";
 import { ArrowRightIcon, GitHubIcon, StarIcon } from "../icons/icons";
 import { DocumentMachineAnimation } from "../animations/document-machine-animation";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 
 export function HeroSection() {
+  const { isSignedIn } = useUser();
+
   return (
     <div className="mb-12 text-center">
 
@@ -28,7 +33,7 @@ export function HeroSection() {
               <ArrowRightIcon className="transition-transform group-hover:translate-x-1" />
             }
           >
-            Try It Free
+            {isSignedIn ? "Go to Library" : "Try It Free"}
           </Button>
         </Link>
         <a
