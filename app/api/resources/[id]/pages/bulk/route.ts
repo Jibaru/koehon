@@ -14,6 +14,7 @@ import { fetchPdfAsFile } from "@/lib/pdf-utils.server";
 import { uploadFile, generateObjectName } from "@/lib/storage/minio";
 import { getAudioDuration } from "@/lib/audio-utils";
 import { USER_TIERS, getMaxPagesForTier, hasUnlimitedPages } from "@/lib/config/tiers";
+import { getOpenAiApiKey } from "@/lib/user-api-keys";
 
 interface BulkPageRequest {
   pages: Array<{
@@ -68,6 +69,9 @@ export async function POST(
         { status: 400 }
       );
     }
+
+    // Get user's custom API key (if they have one)
+    const userApiKey = await getOpenAiApiKey(userId);
 
     // Fetch PDF file
     const pdfFile = await fetchPdfAsFile(resource.pdfUrl);
@@ -139,13 +143,13 @@ export async function POST(
 
           try {
             // 1. Extract text from PDF page using OpenAI (with image descriptions)
-            const extractedText = await extractPageTextWithImages(pdfFile, page);
+            const extractedText = await extractPageTextWithImages(pdfFile, page, userApiKey);
 
             // 2. Translate text to target language
-            const translatedText = await translateText(extractedText, language);
+            const translatedText = await translateText(extractedText, language, userApiKey);
 
             // 3. Convert translated text to audio using OpenAI TTS
-            const audioBlob = await generateAudio(translatedText);
+            const audioBlob = await generateAudio(translatedText, userApiKey);
 
             // 4. Get audio duration
             const audioDuration = await getAudioDuration(audioBlob);

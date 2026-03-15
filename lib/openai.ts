@@ -1,16 +1,34 @@
-import { openai } from "@ai-sdk/openai";
+import { createOpenAI } from "@ai-sdk/openai";
 import { experimental_generateSpeech, generateText } from "ai";
 import { OpenAI } from "openai";
 import { extractPage } from "@/lib/pdf-utils.server";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+/**
+ * Create an OpenAI client instance
+ * Uses custom API key if provided, otherwise falls back to default
+ */
+function getOpenAIClient(customApiKey?: string): OpenAI {
+  return new OpenAI({
+    apiKey: customApiKey || process.env.OPENAI_API_KEY,
+  });
+}
+
+/**
+ * Create an AI SDK OpenAI provider instance
+ * Uses custom API key if provided, otherwise falls back to default
+ */
+function getAISDKProvider(customApiKey?: string) {
+  return createOpenAI({
+    apiKey: customApiKey || process.env.OPENAI_API_KEY,
+  });
+}
 
 export async function extractPageTextWithImages(
   pdfFile: File,
-  pageNumber: number
+  pageNumber: number,
+  customApiKey?: string
 ): Promise<string> {
+  const client = getOpenAIClient(customApiKey);
   const pageBlob = await extractPage(pdfFile, pageNumber);
   const buffer = Buffer.from(await pageBlob.arrayBuffer());
   const base64Pdf = buffer.toString("base64");
@@ -65,12 +83,15 @@ Return the content in the exact order it appears, with text as-is and non-text e
 
 export async function translateText(
   text: string,
-  targetLanguage: string
+  targetLanguage: string,
+  customApiKey?: string
 ): Promise<string> {
   if (!text) throw new Error("No text provided for translation.");
 
+  const openaiProvider = getAISDKProvider(customApiKey);
+
   const { text: translated } = await generateText({
-    model: openai("gpt-4o-mini"),
+    model: openaiProvider("gpt-4o-mini"),
     prompt: `<role>You are an expert translator</role>
 <task>Translate the input text to ${targetLanguage} language.</task>
 <input>${text}</input>
@@ -80,9 +101,14 @@ export async function translateText(
   return translated.trim();
 }
 
-export async function generateAudio(text: string): Promise<Blob> {
+export async function generateAudio(
+  text: string,
+  customApiKey?: string
+): Promise<Blob> {
+  const openaiProvider = getAISDKProvider(customApiKey);
+
   const audio = await experimental_generateSpeech({
-    model: openai.speech("gpt-4o-mini-tts"),
+    model: openaiProvider.speech("gpt-4o-mini-tts"),
     text: text,
     voice: "alloy",
   });
