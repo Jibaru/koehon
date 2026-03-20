@@ -54,6 +54,7 @@ export interface BulkGeneratePagesRequest {
   pages: Array<{
     page: number;
     language: string;
+    force?: boolean;
   }>;
 }
 

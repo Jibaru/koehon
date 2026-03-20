@@ -38,6 +38,7 @@ export function ResourceViewer({
   const [bookmarks, setBookmarks] = useState<BookmarkResponse[]>([]);
   const [currentPageBookmark, setCurrentPageBookmark] = useState<BookmarkResponse | null>(null);
   const [isBookmarkLoading, setIsBookmarkLoading] = useState(false);
+  const [isReprocessing, setIsReprocessing] = useState(false);
 
   const loadBookmarks = useCallback(async () => {
     try {
@@ -155,6 +156,34 @@ export function ResourceViewer({
     }
   }, [isAutoplayEnabled]);
 
+  async function handleReprocess() {
+    if (isReprocessing) return;
+
+    setIsReprocessing(true);
+    setIsLoadingPage(true);
+
+    try {
+      // Force reprocess the current page
+      await resourcesApi.bulkGeneratePages(resourceId, {
+        pages: [{ page: currentPage, language, force: true }],
+      });
+
+      console.log(`Re-processing page ${currentPage}`);
+
+      // Wait a bit for the generation to complete
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Fetch the updated page
+      const data = await resourcesApi.getPage(resourceId, currentPage, language);
+      setAudioUrl(data.audioUrl);
+    } catch (error) {
+      console.error("Error re-processing page:", error);
+    } finally {
+      setIsReprocessing(false);
+      setIsLoadingPage(false);
+    }
+  }
+
   return (
     <>
       <div className="mb-8">
@@ -205,35 +234,58 @@ export function ResourceViewer({
                 </svg>
                 {currentPageBookmark ? currentPageBookmark.name : "Bookmark"}
               </button>
-              <button
-                onClick={() => setIsAutoplayEnabled(!isAutoplayEnabled)}
-                className={
-                  isAutoplayEnabled
-                    ? "relative z-10 flex items-center gap-2 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                    : "relative z-10 flex items-center gap-2 rounded bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
-                }
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleReprocess}
+                  disabled={isReprocessing || isLoadingPage}
+                  className="relative z-10 flex items-center gap-2 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-500 dark:hover:bg-blue-600"
+                  title="Re-process current page"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Autoplay: {isAutoplayEnabled ? "On" : "Off"}
-              </button>
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  {isReprocessing ? "Re-processing..." : "Re-process"}
+                </button>
+                <button
+                  onClick={() => setIsAutoplayEnabled(!isAutoplayEnabled)}
+                  className={
+                    isAutoplayEnabled
+                      ? "relative z-10 flex items-center gap-2 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                      : "relative z-10 flex items-center gap-2 rounded bg-zinc-100 px-3 py-1.5 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-200 dark:bg-zinc-800 dark:text-white dark:hover:bg-zinc-700"
+                  }
+                >
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Autoplay: {isAutoplayEnabled ? "On" : "Off"}
+                </button>
+              </div>
             </div>
             <Player
               audioUrl={audioUrl}

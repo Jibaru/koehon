@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
 import { resourcePages, resources } from "@/lib/db/schema";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and, count, inArray } from "drizzle-orm";
 import pLimit from "p-limit";
 import type { ApiErrorResponse, BulkGeneratePagesResponse } from "@/lib/api/types";
 import {
@@ -20,6 +20,7 @@ interface BulkPageRequest {
   pages: Array<{
     page: number;
     language: string;
+    force?: boolean;
   }>;
 }
 
@@ -79,20 +80,34 @@ export async function POST(
     // Fetch all existing pages for this resource in one query
     const existingPages = await db
       .select({
+        id: resourcePages.id,
         page: resourcePages.page,
         language: resourcePages.language,
       })
       .from(resourcePages)
       .where(eq(resourcePages.resourceId, id));
 
-    // Create a map for quick lookup: "page-language" -> true
+    // Create a map for quick lookup: "page-language" -> page id
     const existingPagesMap = new Map(
-      existingPages.map((p) => [`${p.page}-${p.language}`, true])
+      existingPages.map((p) => [`${p.page}-${p.language}`, p.id])
     );
 
-    // Filter out pages that already exist
+    // Delete pages that have force=true and already exist
+    const pagesToDelete = body.pages
+      .filter(({ page, language, force }) => force && existingPagesMap.has(`${page}-${language}`))
+      .map(({ page, language }) => existingPagesMap.get(`${page}-${language}`)!);
+
+    if (pagesToDelete.length > 0) {
+      await db
+        .delete(resourcePages)
+        .where(inArray(resourcePages.id, pagesToDelete));
+
+      console.log(`Deleted ${pagesToDelete.length} existing page(s) for re-processing`);
+    }
+
+    // Filter out pages that already exist (unless force=true)
     const pagesToProcess = body.pages.filter(
-      ({ page, language }) => !existingPagesMap.has(`${page}-${language}`)
+      ({ page, language, force }) => force || !existingPagesMap.has(`${page}-${language}`)
     );
 
     // Log skipped pages
