@@ -6,10 +6,10 @@ import { eq, and, count, inArray } from "drizzle-orm";
 import pLimit from "p-limit";
 import type { ApiErrorResponse, BulkGeneratePagesResponse } from "@/lib/api/types";
 import {
-  extractPageTextWithImages,
-  translateText,
-  generateAudio,
-} from "@/lib/openai";
+  newExtractor,
+  newAudioGenerator,
+  newTranslator,
+} from "@/lib/ai";
 import { fetchPdfAsFile } from "@/lib/pdf-utils.server";
 import { uploadFile, generateObjectName } from "@/lib/storage/minio";
 import { getAudioDuration } from "@/lib/audio-utils";
@@ -72,8 +72,27 @@ export async function POST(
     }
 
     // Get user's custom API key (if they have one)
-    // const geminiApiKey = await getApiKey(userId, "gemini");
+    const extractorProvider = "openai"; // TODO: should change in the future from user configs
+    const translatorProvider = "openai"; // TODO: should change in the future from user configs
+    const audioGeneratorProvider = "openai"; // TODO: should change in the future from user configs
+
+    const geminiApiKey = await getApiKey(userId, "gemini");
     const openAiApiKey = await getApiKey(userId, "openai");
+
+    const getCachedApiKey = (provider: string) => {
+      switch (provider) {
+        case "gemini":
+          return geminiApiKey;
+        case "openai":
+          return openAiApiKey;
+        default:
+          throw new Error(`Unsupported provider: ${provider}`);
+      }
+    }
+
+    const extractor = newExtractor(extractorProvider, getCachedApiKey(extractorProvider));
+    const translator = newTranslator(translatorProvider, getCachedApiKey(translatorProvider));
+    const audioGenerator = newAudioGenerator(audioGeneratorProvider, getCachedApiKey(audioGeneratorProvider));
 
     // Fetch PDF file
     const pdfFile = await fetchPdfAsFile(resource.pdfUrl);
@@ -159,13 +178,13 @@ export async function POST(
 
           try {
             // 1. Extract text from PDF page using OpenAI (with image descriptions)
-            const extractedText = await extractPageTextWithImages(pdfFile, page, openAiApiKey);
+            const extractedText = await extractor.extractPageTextWithImages(pdfFile, page);
 
             // 2. Translate text to target language
-            const translatedText = await translateText(extractedText, language, openAiApiKey);
+            const translatedText = await translator.translateText(extractedText, language);
 
             // 3. Convert translated text to audio using OpenAI TTS
-            const audioBlob = await generateAudio(translatedText, openAiApiKey);
+            const audioBlob = await audioGenerator.generateAudio(translatedText);
 
             // 4. Get audio duration
             const audioDuration = await getAudioDuration(audioBlob);
