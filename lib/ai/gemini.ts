@@ -1,8 +1,10 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 import { AudioGenerator, Translator } from "./interfaces";
 
-export class GeminiTranslator implements Translator {
-  constructor(private customApiKey?: string) { }
+export class GeminiTranslator extends Translator {
+  constructor(private customApiKey?: string) {
+    super();
+  }
 
   async translateText(
     text: string,
@@ -15,10 +17,7 @@ export class GeminiTranslator implements Translator {
       model: "gemini-2.5-flash",
       contents: {
         parts: [{
-          text: `<role>You are an expert translator</role>
-  <task>Translate the input text to ${targetLanguage} language.</task>
-  <input>${text}</input>
-  <output>Only retrieve the translated text. Preserve [IMAGE: ...] descriptions as-is.</output>`
+          text: this.instructions(text, targetLanguage),
         }]
       },
     });
@@ -32,8 +31,10 @@ export class GeminiTranslator implements Translator {
   }
 }
 
-export class GeminiAudioGenerator implements AudioGenerator {
-  constructor(private customApiKey?: string) { }
+export class GeminiAudioGenerator extends AudioGenerator {
+  constructor(private customApiKey?: string) {
+    super();
+  }
 
   async generateAudio(
     text: string,

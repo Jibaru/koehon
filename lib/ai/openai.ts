@@ -24,8 +24,10 @@ function getAISDKProvider(customApiKey?: string) {
   });
 }
 
-export class OpenAiExtractor implements Extractor {
-  constructor(private customApiKey?: string) { }
+export class OpenAiExtractor extends Extractor {
+  constructor(private customApiKey?: string) {
+    super();
+  }
 
   async extractPageTextWithImages(
     pdfFile: File,
@@ -44,20 +46,7 @@ export class OpenAiExtractor implements Extractor {
           content: [
             {
               type: "input_text",
-              text: `<role>You are an expert PDF text extraction assistant</role>
-  <task>
-  Extract all content from this PDF page while preserving the exact order and structure as it appears.
-  </task>
-  <instructions>
-  1. Process the page from top to bottom, left to right, exactly as it appears
-  2. For text content: Extract the exact text maintaining original formatting
-  3. For non-text elements (figures, charts, diagrams, images): Describe them using the format: [IMAGE: detailed description]
-  4. Maintain the sequential order of all elements
-  5. Do not include headers or footer elements
-  </instructions>
-  <output_format>
-  Return the content in the exact order it appears, with text as-is and non-text elements described as [IMAGE: description].
-  </output_format>`,
+              text: this.instructions(),
             },
             {
               type: "input_file",
@@ -85,8 +74,10 @@ export class OpenAiExtractor implements Extractor {
   }
 }
 
-export class OpenAiTranslator implements Translator {
-  constructor(private customApiKey?: string) { }
+export class OpenAiTranslator extends Translator {
+  constructor(private customApiKey?: string) {
+    super();
+  }
 
   async translateText(
     text: string,
@@ -98,18 +89,17 @@ export class OpenAiTranslator implements Translator {
 
     const { text: translated } = await generateText({
       model: openaiProvider("gpt-4o-mini"),
-      prompt: `<role>You are an expert translator</role>
-  <task>Translate the input text to ${targetLanguage} language.</task>
-  <input>${text}</input>
-  <output>Only retrieve the translated text. Preserve [IMAGE: ...] descriptions as-is.</output>`,
+      prompt: this.instructions(text, targetLanguage),
     });
 
     return translated.trim();
   }
 }
 
-export class OpenAiAudioGenerator implements AudioGenerator {
-  constructor(private customApiKey?: string) { }
+export class OpenAiAudioGenerator extends AudioGenerator {
+  constructor(private customApiKey?: string) {
+    super();
+  }
 
   async generateAudio(
     text: string,
