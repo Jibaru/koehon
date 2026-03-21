@@ -38,6 +38,7 @@ export class GeminiAudioGenerator extends AudioGenerator {
 
   async generateAudio(
     text: string,
+    _: string,
   ): Promise<Blob> {
     const ai = new GoogleGenAI({ apiKey: this.customApiKey || process.env.GEMINI_API_KEY });
     const response = await ai.models.generateContent({

@@ -103,6 +103,7 @@ export class OpenAiAudioGenerator extends AudioGenerator {
 
   async generateAudio(
     text: string,
+    targetLanguage: string,
   ): Promise<Blob> {
     const openaiProvider = getAISDKProvider(this.customApiKey);
 
@@ -110,6 +111,7 @@ export class OpenAiAudioGenerator extends AudioGenerator {
       model: openaiProvider.speech("gpt-4o-mini-tts-2025-12-15"),
       text: text,
       voice: "alloy",
+      instructions: this.instructions(targetLanguage),
     });
 
     const uint8Array = await audio.audio.uint8Array;

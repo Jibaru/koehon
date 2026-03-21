@@ -185,7 +185,7 @@ export async function POST(
             const translatedText = await translator.translateText(extractedText, language);
 
             // 3. Convert translated text to audio using OpenAI TTS
-            const audioBlob = await audioGenerator.generateAudio(translatedText);
+            const audioBlob = await audioGenerator.generateAudio(translatedText, language);
 
             // 4. Get audio duration
             const audioDuration = await getAudioDuration(audioBlob);
