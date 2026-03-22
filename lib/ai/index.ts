@@ -1,8 +1,8 @@
 import { AI_PROVIDERS } from "../config/providers";
 import { GeminiAudioGenerator, GeminiTranslator } from "./gemini";
-import { AudioGenerator, Extractor, Translator } from "./interfaces";
+import { AudioGenerator, Cleaner, Extractor, Translator } from "./interfaces";
 import { MistralExtractor } from "./mistral";
-import { OpenAiAudioGenerator, OpenAiExtractor, OpenAiTranslator } from "./openai";
+import { OpenAiAudioGenerator, OpenAiCleaner, OpenAiExtractor, OpenAiTranslator } from "./openai";
 
 export function newExtractor(provider: string, customApiKey?: string): Extractor {
   switch (provider) {
@@ -12,6 +12,15 @@ export function newExtractor(provider: string, customApiKey?: string): Extractor
       return new MistralExtractor(customApiKey);
     default:
       throw new Error(`Unsupported provider: ${provider}`);
+  }
+}
+
+export function newCleaner(provider: string, customApiKey?: string): Cleaner {
+  switch (provider) {
+    case AI_PROVIDERS.OPEN_AI:
+      return new OpenAiCleaner(customApiKey);
+    default:
+      throw new Error(`Unsupported cleaner provider: ${provider}`);
   }
 }
 

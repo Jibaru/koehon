@@ -9,6 +9,7 @@ import {
   newExtractor,
   newAudioGenerator,
   newTranslator,
+  newCleaner,
 } from "@/lib/ai";
 import { fetchPdfAsFile } from "@/lib/pdf-utils.server";
 import { uploadFile, generateObjectName } from "@/lib/storage/minio";
@@ -80,6 +81,7 @@ export async function POST(
       .limit(1);
 
     const extractorProvider = settings?.models?.extractor ?? AI_PROVIDERS.OPEN_AI;
+    const cleanerProvider = settings?.models?.cleaner ?? AI_PROVIDERS.OPEN_AI;
     const translatorProvider = settings?.models?.translator ?? AI_PROVIDERS.OPEN_AI;
     const audioGeneratorProvider = settings?.models?.audio_generator ?? AI_PROVIDERS.OPEN_AI;
 
@@ -101,6 +103,7 @@ export async function POST(
     }
 
     const extractor = newExtractor(extractorProvider, getCachedApiKey(extractorProvider));
+    const cleaner = newCleaner(cleanerProvider, getCachedApiKey(cleanerProvider));
     const translator = newTranslator(translatorProvider, getCachedApiKey(translatorProvider));
     const audioGenerator = newAudioGenerator(audioGeneratorProvider, getCachedApiKey(audioGeneratorProvider));
 
@@ -190,16 +193,19 @@ export async function POST(
             // 1. Extract text from PDF page using OpenAI (with image descriptions)
             const extractedText = await extractor.extractPageTextWithImages(pdfFile, page);
 
-            // 2. Translate text to target language
-            const translatedText = await translator.translateText(extractedText, language);
+            // 2. Clean the text
+            const cleanedText = await cleaner.cleanText(extractedText);
 
-            // 3. Convert translated text to audio using OpenAI TTS
+            // 3. Translate text to target language
+            const translatedText = await translator.translateText(cleanedText, language);
+
+            // 4. Convert translated text to audio using OpenAI TTS
             const audioBlob = await audioGenerator.generateAudio(translatedText, language);
 
-            // 4. Get audio duration
+            // 5. Get audio duration
             const audioDuration = await getAudioDuration(audioBlob);
 
-            // 5. Upload audio to MinIO
+            // 6. Upload audio to MinIO
             const audioFile = new File(
               [audioBlob],
               `${resource.id}-page-${page}-${language}.mp3`,
@@ -208,7 +214,7 @@ export async function POST(
             const audioObjectName = generateObjectName(userId, audioFile.name);
             const { url: audioUrl } = await uploadFile(audioFile, audioObjectName);
 
-            // 6. Store resource page in database
+            // 7. Store resource page in database
             const [newPage] = await db
               .insert(resourcePages)
               .values({

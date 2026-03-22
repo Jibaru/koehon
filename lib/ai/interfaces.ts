@@ -21,6 +21,32 @@ Return the content in the exact order it appears, with text as-is and non-text e
   }
 }
 
+export abstract class Cleaner {
+  abstract cleanText(text: string): Promise<string>;
+
+  instructions(text: string): string {
+    return `<role>You are a text cleaning specialist for audiobook preparation</role>
+<task>
+Clean the following extracted PDF text by removing elements that are irrelevant for audio narration.
+</task>
+<instructions>
+1. Remove page numbers, headers, and footers (e.g. "Page 12", "- 5 -", "Chapter 3 | 45")
+2. Remove reference codes, ISBNs, DOIs, and catalog numbers
+3. Remove copyright notices, legal disclaimers, and publisher information
+4. Remove table of contents entries and index references
+5. Remove watermarks or repeated institutional text
+6. Remove excessive whitespace, line breaks, and formatting artifacts
+7. Remove bibliographic references and citation markers (e.g. "[1]", "(Smith, 2020)")
+8. Remove URLs, email addresses, and file paths
+9. Preserve all meaningful body text, paragraphs, and [IMAGE: ...] descriptions exactly as they are
+10. Preserve the natural reading order and paragraph structure
+11. Do NOT summarize, rephrase, or alter the actual content
+</instructions>
+<input>${text}</input>
+<output>Return only the cleaned text, ready for audio narration. No explanations or comments.</output>`;
+  }
+}
+
 export abstract class Translator {
   abstract translateText(text: string, targetLanguage: string): Promise<string>;
 

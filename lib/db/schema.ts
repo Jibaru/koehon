@@ -74,10 +74,12 @@ export const userSettings = pgTable("user_settings", {
   userId: varchar("user_id", { length: 255 }).notNull().unique(),
   models: json("models").$type<{
     extractor: string;
+    cleaner: string;
     translator: string;
     audio_generator: string;
   }>().notNull().default({
     extractor: "openai",
+    cleaner: "openai",
     translator: "openai",
     audio_generator: "openai",
   }),

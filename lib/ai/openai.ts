@@ -2,7 +2,7 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { experimental_generateSpeech, generateText } from "ai";
 import { OpenAI } from "openai";
 import { extractPage } from "@/lib/pdf-utils.server";
-import { AudioGenerator, Extractor, Translator } from "./interfaces";
+import { AudioGenerator, Cleaner, Extractor, Translator } from "./interfaces";
 
 /**
  * Create an OpenAI client instance
@@ -71,6 +71,25 @@ export class OpenAiExtractor extends Extractor {
           .join("\n");
       })
       .join("\n");
+  }
+}
+
+export class OpenAiCleaner extends Cleaner {
+  constructor(private customApiKey?: string) {
+    super();
+  }
+
+  async cleanText(text: string): Promise<string> {
+    if (!text) return "";
+
+    const openaiProvider = getAISDKProvider(this.customApiKey);
+
+    const { text: cleaned } = await generateText({
+      model: openaiProvider("gpt-4o-mini"),
+      prompt: this.instructions(text),
+    });
+
+    return cleaned.trim();
   }
 }
 
