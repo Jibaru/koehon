@@ -85,6 +85,7 @@ export async function POST(
 
     const geminiApiKey = await getApiKey(userId, AI_PROVIDERS.GEMINI);
     const openAiApiKey = await getApiKey(userId, AI_PROVIDERS.OPEN_AI);
+    const mistralApiKey = await getApiKey(userId, AI_PROVIDERS.MISTRAL);
 
     const getCachedApiKey = (provider: string) => {
       switch (provider) {
@@ -92,6 +93,8 @@ export async function POST(
           return geminiApiKey;
         case AI_PROVIDERS.OPEN_AI:
           return openAiApiKey;
+        case AI_PROVIDERS.MISTRAL:
+          return mistralApiKey;
         default:
           throw new Error(`Unsupported provider: ${provider}`);
       }
