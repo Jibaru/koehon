@@ -1,4 +1,12 @@
 import { PDFDocument } from "pdf-lib";
+import { execFile } from "child_process";
+import { writeFile, readFile, unlink, mkdtemp } from "fs/promises";
+import { join } from "path";
+import { tmpdir } from "os";
+import { promisify } from "util";
+import { readFileSync } from "fs";
+
+const execFileAsync = promisify(execFile);
 
 export interface PdfPageInfo {
   pageNumber: number;
@@ -133,8 +141,7 @@ export async function extractPage(
   newPdf.addPage(copiedPage);
 
   const pdfBytes = await newPdf.save();
-  // Convert Uint8Array to ArrayBuffer for Blob compatibility
-  return new Blob([pdfBytes.slice().buffer], { type: "application/pdf" });
+  return new Blob([pdfBytes.buffer as ArrayBuffer], { type: "application/pdf" });
 }
 
 /**
@@ -173,4 +180,106 @@ export async function extractPageRange(
   const pdfBytes = await newPdf.save();
   // Convert Uint8Array to ArrayBuffer for Blob compatibility
   return new Blob([pdfBytes.slice().buffer], { type: "application/pdf" });
+}
+
+/**
+ * Extract a single page from a PDF as a JPG image using poppler-utils (pdftoppm)
+ * Requires poppler-utils to be installed on the system
+ * @param file - PDF File or Buffer
+ * @param pageNumber - Page number to extract (1-indexed)
+ * @param dpi - Image resolution in DPI (default: 150)
+ * @returns Buffer containing JPG image data
+ */
+export async function extractPageAsJpg(
+  file: File | Buffer,
+  pageNumber: number,
+  dpi: number = 150,
+): Promise<Buffer> {
+  const tempDir = await mkdtemp(join(tmpdir(), "pdf-"));
+  const inputPath = join(tempDir, "input.pdf");
+  const outputPrefix = join(tempDir, "output");
+
+  try {
+    // Write PDF to temp file
+    const pdfBuffer = Buffer.isBuffer(file)
+      ? file
+      : Buffer.from(await (file as File).arrayBuffer());
+
+    await writeFile(inputPath, pdfBuffer);
+
+    // Use pdftoppm to convert single page to JPG
+    await execFileAsync("pdftoppm", [
+      "-jpeg",
+      "-r", String(dpi),
+      "-f", String(pageNumber),
+      "-l", String(pageNumber),
+      "-singlefile",
+      inputPath,
+      outputPrefix,
+    ]);
+
+    // Read the generated JPG file
+    const outputPath = `${outputPrefix}.jpg`;
+    const jpgBuffer = readFileSync(outputPath);
+
+    // Cleanup temp files
+    await unlink(inputPath).catch(() => {});
+    await unlink(outputPath).catch(() => {});
+
+    return jpgBuffer;
+  } catch (error) {
+    // Cleanup on error
+    await unlink(inputPath).catch(() => {});
+
+    throw new Error(
+      `Failed to convert PDF page ${pageNumber} to JPG: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+}
+
+/**
+ * Extract a single page from a PDF as a JPG file on disk using poppler-utils (pdftoppm)
+ * The caller is responsible for cleaning up the returned file path
+ * @param file - PDF File or Buffer
+ * @param pageNumber - Page number to extract (1-indexed)
+ * @param dpi - Image resolution in DPI (default: 150)
+ * @returns Path to the generated JPG file
+ */
+export async function extractPageAsJpgPath(
+  file: File | Buffer,
+  pageNumber: number,
+  dpi: number = 150,
+): Promise<string> {
+  const tempDir = await mkdtemp(join(tmpdir(), "pdf-"));
+  const inputPath = join(tempDir, "input.pdf");
+  const outputPrefix = join(tempDir, "output");
+
+  try {
+    const pdfBuffer = Buffer.isBuffer(file)
+      ? file
+      : Buffer.from(await (file as File).arrayBuffer());
+
+    await writeFile(inputPath, pdfBuffer);
+
+    await execFileAsync("pdftoppm", [
+      "-jpeg",
+      "-r", String(dpi),
+      "-f", String(pageNumber),
+      "-l", String(pageNumber),
+      "-singlefile",
+      inputPath,
+      outputPrefix,
+    ]);
+
+    // Cleanup only the input PDF, keep the output JPG
+    await unlink(inputPath).catch(() => {});
+
+    return `${outputPrefix}.jpg`;
+  } catch (error) {
+    await unlink(inputPath).catch(() => {});
+
+    throw new Error(
+      `Failed to convert PDF page ${pageNumber} to JPG: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
 }

@@ -31,9 +31,9 @@ RUN pnpm run build
 
 # Stage 3: Production server (Runner)
 FROM node:22.12-alpine3.21 AS runner
-# Install security updates
+# Install security updates and poppler-utils for PDF to image conversion
 RUN apk upgrade --no-cache && \
-    apk add --no-cache dumb-init
+    apk add --no-cache dumb-init poppler-utils
 WORKDIR /app
 ENV NODE_ENV=production
 

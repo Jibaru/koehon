@@ -1,6 +1,7 @@
 import { Mistral } from '@mistralai/mistralai';
 import { Extractor } from "./interfaces";
-import { extractPage } from '../pdf-utils.server';
+import { extractPage, extractPageAsJpg, extractPageAsJpgPath } from '../pdf-utils.server';
+import { readFileSync } from 'fs';
 
 export class MistralExtractor extends Extractor {
   constructor(private customApiKey?: string) {
@@ -8,23 +9,24 @@ export class MistralExtractor extends Extractor {
   }
 
   async extractPageTextWithImages(pdfFile: File, pageNumber: number): Promise<string> {
-    const pageBlob = await extractPage(pdfFile, pageNumber);
+    const pagePath = await extractPageAsJpgPath(pdfFile, pageNumber);
 
     const apiKey = this.customApiKey || process.env.MISTRAL_API_KEY;
     const client = new Mistral({apiKey: apiKey});
 
     const { id } = await client.files.upload({
+      purpose: "ocr",
       file: {
-        fileName: `page-${pageNumber}.pdf`,
-        content: pageBlob,
+        fileName: "document.pdf",
+        content: readFileSync(pagePath),
       },
-    })
+    });
 
     const { pages } = await client.ocr.process({
       model: "mistral-ocr-latest",
       document: {
-          type: "file",
-          fileId: id,
+        type: "file",
+        fileId: id,
       },
       tableFormat: "markdown",
       includeImageBase64: true
