@@ -68,6 +68,14 @@ export interface BulkGeneratePagesResponse {
   }>;
 }
 
+// Import Types
+export interface ImportResourceResponse {
+  success: boolean;
+  resourceId: string;
+  pagesImported: number;
+  bookmarksImported: number;
+}
+
 // Bookmark Types
 export interface BookmarkResponse {
   id: string;

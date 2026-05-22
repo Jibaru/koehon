@@ -297,6 +297,23 @@ export function ResourceSettingsForm({
         )}
       </div>
 
+      <div className="border border-zinc-200 bg-white p-6 dark:border-white/10 dark:bg-zinc-900">
+        <h2 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-white">
+          Export Resource
+        </h2>
+        <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+          Download a portable .zip with the PDF, cover, manifest, and every
+          generated page (text + MP3 audio) and bookmark. You can re-import it
+          later on any account.
+        </p>
+        <a
+          href={resourcesApi.getExportUrl(resourceId)}
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap bg-foreground px-6 py-3 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+        >
+          Download Export
+        </a>
+      </div>
+
       <div className="border border-red-200 bg-red-50 p-6 dark:border-red-900/50 dark:bg-red-950/20">
         <h2 className="mb-2 text-xl font-semibold text-red-900 dark:text-red-100">
           Delete Resource

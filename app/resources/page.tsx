@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { ResourceCard } from "@/components/ui/resource-card";
 import { Header } from "@/components/layout/header";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { ImportResourceButton } from "@/components/import-resource-button";
 import { getResources, getTotalAudioHours, getThisWeekAudioHours, getLatestBookmarksMap } from "./actions";
 
 export default async function ResourcesPage({
@@ -47,12 +48,15 @@ export default async function ResourcesPage({
               {total} {total === 1 ? "resource" : "resources"} available
             </p>
           </div>
-          <a
-            href="/resources/new"
-            className="bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-          >
-            + Add Resource
-          </a>
+          <div className="flex items-start gap-2">
+            <ImportResourceButton />
+            <a
+              href="/resources/new"
+              className="bg-foreground px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+            >
+              + Add Resource
+            </a>
+          </div>
         </div>
         {/* Stats Bar */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
